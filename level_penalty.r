@@ -1,38 +1,45 @@
-level_penalty <- function(player, map) {
-  diff = 3 + floor(player/16)
+level_penalty <- function(player, monster) {
+  diff = floor(3 + (player/16))
   lower = player - diff
   upper = player + diff 
   penalty = 0
   
-  if(map > lower && map < upper) { # No experience penalty
+  if(monster >= lower && monster <= upper) { # No experience penalty
     penalty = 0
-  } else if(map < lower) {
-    penalty = lower - map
-  } else { # if(map > upper) {
-    penalty = map - upper
+  } else if(monster < lower) {
+    penalty = lower - monster
+  } else { # if(monster > upper) {
+    penalty = monster - upper
   }
   
   final = ((player + 5) / (player + 5 + penalty^2.5))^1.5
-  final = format(round(final, 2), nsmall = 2)
+  #final = as.numeric(format(round(final, 2), nsmall = 2))
+  if(is.nan(final)) {
+    print(sprintf("%d:%d", player, monster))
+  }
   final
 }
 
-df_penalties <- function(levels, map) {
+df_penalties <- function(levels, monster) {
   future_matrix = c()
   
   size_lev = length(levels)
-  size_map = length(maps)
+  size_mon = length(monster)
   
   for(level in levels) {
-    for(map in maps) {
-      future_matrix = c(future_matrix, as.numeric(level_penalty(level, map)))
+    for(mon in monster) {
+      future_matrix = c(future_matrix, as.numeric(level_penalty(level, mon)))
     }
   }
-  matrix(future_matrix, size_lev, size_map, byrow = TRUE)
+  matrix(future_matrix, size_lev, size_mon, byrow = TRUE)
 }
 
 
-create_graph <- function() {    
+create_graph <- function() {
+  if(!require("reshape2") || !require("ggplot2")) {
+    library(reshape2)
+    library(ggplot2)
+  }
   levels <- c(seq(1,100))
   monsters <- c(seq(1,78))
   
@@ -40,7 +47,6 @@ create_graph <- function() {
   
   melted <- melt(poe.matrix)
   colnames(melted) <- c("Player", "Monster", "Penalty")
-  melted[is.na(melted)] <- 1.00 # I desperately need to figure out why this goes to NaN  
     
   ggplot(data=melted, aes(x=Player, y=Monster, fill=Penalty)) + geom_tile() + scale_fill_gradient(low="green", high="red")
 }
