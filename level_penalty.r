@@ -13,10 +13,7 @@ level_penalty <- function(player, monster) {
   }
   
   final = ((player + 5) / (player + 5 + penalty^2.5))^1.5
-  #final = as.numeric(format(round(final, 2), nsmall = 2))
-  if(is.nan(final)) {
-    print(sprintf("%d:%d", player, monster))
-  }
+  final = as.numeric(format(round(final, 2), nsmall = 2))
   final
 }
 
